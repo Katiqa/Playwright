@@ -1,22 +1,27 @@
 const { test, expect } = require("@playwright/test");
+const dataValue = require("/home/ubuntu20-user/JavaScript/Play/Playwright/7.3/playwright/user");
 
-test("test", async ({ page }) => {
-  // Go to https://netology.ru/free/management#/
-  await page.goto("https://netology.ru/free/management#/");
+test("success", async ({ page }) => {
+  await page.goto("https://netology.ru/?modal=sign_in");
 
-  // Click a
-  await page.click("a");
-  await expect(page).toHaveURL("https://netology.ru/");
+  await page.fill('[placeholder = "Email"]', dataValue.login);
+  await page.fill('[placeholder = "Пароль"]', dataValue.pass);
 
-  // Click text=Учиться бесплатно
-  await page.click("text=Учиться бесплатно");
-  await expect(page).toHaveURL("https://netology.ru/free");
+  await Promise.all([
+    page.waitForNavigation(),
+    page.click('[data-testid="login-submit-btn"]'),
+  ]);
+  await page.waitForTimeout(5000);
+  const title = await page.title();
+  expect(title).toBe("Моё обучение");
+});
 
-  page.click("text=Бизнес и управление");
+test("notSuccess", async ({ page }) => {
+  await page.goto("https://netology.ru/?modal=sign_in");
 
-  // Click text=Как перенести своё дело в онлайн
-  await page.click("text=Как перенести своё дело в онлайн");
-  await expect(page).toHaveURL(
-    "https://netology.ru/programs/kak-perenesti-svoyo-delo-v-onlajn-bp"
-  );
+  await page.fill('[placeholder = "Email"]', "email@mail.ru");
+  await page.fill('[placeholder = "Пароль"]', "qwerty1234");
+
+  await Promise.all([page.click('[data-testid="login-submit-btn"]')]);
+  await expect(page.locator("[data-testid=login-error-hint]")).toBeVisible();
 });
